@@ -12,6 +12,7 @@ from storeapi.security import (
     get_subject_for_token_type,
     create_confirmation_token,
 )
+from storeapi import tasks
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -28,12 +29,12 @@ async def register(user: UserIn, request: Request):
     query = user_table.insert().values(email=user.email, password=hashed_password)
     logger.debug(query)
     await database.execute(query)
+    await tasks.send_user_registration_email(
+        user.email,
+        confirmation_url=request.url_for("confirm_email", token=create_confirmation_token(user.email))
+    )
     return {
         "detail": "user created. Please confirm your email.",
-        "confirmation_url": request.url_for(
-            "confirm_email",
-            token=create_confirmation_token(user.email)
-        )
     }
 
 

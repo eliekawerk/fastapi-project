@@ -1,9 +1,10 @@
 import os
 from typing import AsyncGenerator, Generator
+from unittest.mock import Mock, AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
+from httpx import AsyncClient, Request, Response
 
 from storeapi.database import database, user_table
 
@@ -62,3 +63,13 @@ async def confirmed_user(registered_user: dict) -> dict:
 async def logged_in_token(async_client: AsyncClient, confirmed_user: dict) -> str:
     response = await async_client.post("/token", json=confirmed_user)
     return response.json()["access_token"]
+
+
+@pytest.fixture(autouse=True)
+async def mock_httpx_client(mocker):
+    mocked_client = mocker.patch("storeapi.tasks.httpx.AsyncClient")
+    mocked_async_client = Mock()
+    response = Response(status_code=200, content="", request=Request("POST", "//"))
+    mocked_async_client = AsyncMock(return_value=response)
+    mocked_client.return_value.__aenter__.return_value = mocked_async_client
+    return mocked_async_client
