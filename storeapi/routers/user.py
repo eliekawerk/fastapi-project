@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, status, Request
+from fastapi import APIRouter, HTTPException, status, Request, BackgroundTasks
 
 from storeapi.database import database, user_table
 from storeapi.models.user import UserIn
@@ -19,7 +19,7 @@ router = APIRouter()
 
 
 @router.post("/register", status_code=201)
-async def register(user: UserIn, request: Request):
+async def register(user: UserIn, background_tasks: BackgroundTasks, request: Request):
     if await get_user(user.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -29,9 +29,15 @@ async def register(user: UserIn, request: Request):
     query = user_table.insert().values(email=user.email, password=hashed_password)
     logger.debug(query)
     await database.execute(query)
-    await tasks.send_user_registration_email(
+    # await tasks.send_user_registration_email(
+    #     user.email,
+    #     confirmation_url=request.url_for("confirm_email", token=create_confirmation_token(user.email))
+    # )
+    # Don't run ML preds in a background task
+    background_tasks.add_task(
+            tasks.send_user_registration_email,
         user.email,
-        confirmation_url=request.url_for("confirm_email", token=create_confirmation_token(user.email))
+            confirmation_url=request.url_for("confirm_email", token=create_confirmation_token(user.email))
     )
     return {
         "detail": "user created. Please confirm your email.",
