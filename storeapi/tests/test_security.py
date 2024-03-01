@@ -1,5 +1,4 @@
 import pytest
-
 from jose import jwt
 
 from storeapi import security
@@ -58,7 +57,9 @@ def test_subject_for_invalid_token(mocker):
 def test_get_subject_for_token_type_missing_sub():
     email = "test@example.com"
     token = security.create_access_token(email)
-    payload = jwt.decode(token, key=security.SECRET_KEY, algorithms=[security.ALGORITHM])
+    payload = jwt.decode(
+        token, key=security.SECRET_KEY, algorithms=[security.ALGORITHM]
+    )
     del payload["sub"]
     token = jwt.encode(payload, key=security.SECRET_KEY, algorithm=security.ALGORITHM)
     with pytest.raises(security.HTTPException) as exc_info:
@@ -72,7 +73,6 @@ def test_get_subject_for_token_type_wrong_type():
     with pytest.raises(security.HTTPException) as exc_info:
         security.get_subject_for_token_type(token, "access")
     assert "Token has incorrect type expected ..." == exc_info.value.detail
-
 
 
 def test_password_hashes():

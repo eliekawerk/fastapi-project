@@ -1,9 +1,6 @@
 import pytest
+from fastapi import BackgroundTasks
 from httpx import AsyncClient
-
-from fastapi import Request, BackgroundTasks
-
-from storeapi import tasks
 
 
 async def register_user(async_client: AsyncClient, email: str, password: str):
@@ -39,6 +36,7 @@ async def test_register_user_already_exists(
 #
 #     assert response.status_code == 200
 #     assert "user confirmed" in response.json()["detail"]
+
 
 @pytest.mark.anyio
 async def test_confirm_user(async_client: AsyncClient, mocker):
@@ -80,7 +78,9 @@ async def test_login_user_already_exists(async_client: AsyncClient):
 
 
 @pytest.mark.anyio
-async def test_login_user_not_confirmed(async_client: AsyncClient, registered_user: dict):
+async def test_login_user_not_confirmed(
+    async_client: AsyncClient, registered_user: dict
+):
     response = await async_client.post(
         "/token",
         json={

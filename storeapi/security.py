@@ -19,10 +19,7 @@ pwd_context = CryptContext(schemes=["bcrypt"])
 
 
 def create_credentials_exception(detail: str) -> HTTPException:
-    return HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=detail
-    )
+    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
 
 
 def confirm_token_expire_minutes() -> int:
@@ -54,8 +51,7 @@ def create_confirmation_token(email: str):
 
 
 def get_subject_for_token_type(
-    token: str,
-    type: Literal["access", "confirmation"]
+    token: str, type: Literal["access", "confirmation"]
 ) -> str:
     try:
         payload = jwt.decode(token, key=SECRET_KEY, algorithms=[ALGORITHM])

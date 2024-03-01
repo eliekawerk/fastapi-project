@@ -1,18 +1,18 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, status, Request, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 
+from storeapi import tasks
 from storeapi.database import database, user_table
 from storeapi.models.user import UserIn
 from storeapi.security import (
     authenticate_user,
     create_access_token,
-    get_password_hash,
-    get_user,
-    get_subject_for_token_type,
     create_confirmation_token,
+    get_password_hash,
+    get_subject_for_token_type,
+    get_user,
 )
-from storeapi import tasks
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -35,9 +35,11 @@ async def register(user: UserIn, background_tasks: BackgroundTasks, request: Req
     # )
     # Don't run ML preds in a background task
     background_tasks.add_task(
-            tasks.send_user_registration_email,
+        tasks.send_user_registration_email,
         user.email,
-            confirmation_url=request.url_for("confirm_email", token=create_confirmation_token(user.email))
+        confirmation_url=request.url_for(
+            "confirm_email", token=create_confirmation_token(user.email)
+        ),
     )
     return {
         "detail": "user created. Please confirm your email.",

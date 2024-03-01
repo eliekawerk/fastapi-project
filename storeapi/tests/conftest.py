@@ -1,6 +1,6 @@
 import os
 from typing import AsyncGenerator, Generator
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -13,6 +13,7 @@ from storeapi.database import database, user_table
 os.environ["ENV_STATE"] = "test"
 
 from storeapi.main import app  # noqa: E402
+from storeapi.tests.helpers import create_post  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -28,7 +29,7 @@ def client() -> Generator:
 @pytest.fixture(autouse=True)
 async def db() -> AsyncGenerator:
     await database.connect()
-    yield
+    yield database
     await database.disconnect()
 
 
@@ -73,3 +74,8 @@ async def mock_httpx_client(mocker):
     mocked_async_client = AsyncMock(return_value=response)
     mocked_client.return_value.__aenter__.return_value = mocked_async_client
     return mocked_async_client
+
+
+@pytest.fixture()
+async def created_post(async_client: AsyncClient, logged_in_token: str):
+    return await create_post("Test Post", async_client, logged_in_token)
