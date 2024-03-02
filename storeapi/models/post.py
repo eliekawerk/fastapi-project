@@ -26,10 +26,8 @@ class Comment(CommentIn):
 
 
 class UserPostWithLikes(UserPost):
+    model_config = ConfigDict(from_attributes=True)
     likes: int
-
-    class Config:
-        orm_mode = True
 
 
 class UserPostWithComments(BaseModel):
